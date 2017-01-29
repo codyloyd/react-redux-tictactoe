@@ -9,6 +9,8 @@ const gameboard = (state=[null,null,null,null,null,null,null,null,null],action) 
     case 'PLACE_MARKER':
       return state.map((x,i) => 
         i === action.positon ? action.marker : x);
+    case 'RESTART_GAME':
+      return state.map(x => null)  
     default:
     return state;  
   }
@@ -33,6 +35,27 @@ const Square = ({marker,onclick}) =>
     onClick={() => onclick()}
     >{marker}</div>
 
+const gameStatus = board => {
+  const winConditions = [[0, 1, 2],
+                         [3, 4, 5],
+                         [6, 7, 8],
+                         [0, 3, 6],
+                         [1, 4, 7],
+                         [2, 5, 8],
+                         [0, 4, 8],
+                         [2, 4, 6]]
+
+  return winConditions.reduce((win,c) => {
+    if (!board[c[0]]) return win;
+    if (board[c[0]] === board[c[1]] && 
+        board[c[0]] === board[c[2]]) 
+      {
+        return {win: true, winner: board[c[0]]}
+      };
+    return win;
+  }, {win:false, winner:null})
+}
+
 const Board = ({board}) => {
   return(
     <div className="board">
@@ -41,17 +64,45 @@ const Board = ({board}) => {
           marker={x}
           key={i}
           onclick={() => {
-              store.dispatch({
-                type: 'PLACE_MARKER',
-                positon: i,
-                marker: store.getState().currentPlayer
-              })
-              store.dispatch({type: 'SWITCH_PLAYER'})
+              if (!board[i] && !gameStatus(board).win) {
+                store.dispatch({
+                  type: 'PLACE_MARKER',
+                  positon: i,
+                  marker: store.getState().currentPlayer
+                })
+                store.dispatch({type: 'SWITCH_PLAYER'})
+              }
             }
           }
         />
       )}
     </div>
+  )
+}
+
+
+const Gameover = ({board}) => {
+  if (gameStatus(board).win){
+    return (
+      <div>
+        <h1>GAMEOVER DUDE</h1>
+        <h2>winner is {gameStatus(board).winner}</h2>
+        <RestartButton />
+      </div>
+    )
+  }
+  return <div></div>
+}
+
+const RestartButton = props => {
+  return (
+    <button 
+      onClick={() =>
+        store.dispatch({
+          type:'RESTART_GAME'
+        })
+      }
+    >RESTART GAME</button>    
   )
 }
 
@@ -62,6 +113,7 @@ const App  = props => {
     <div>
       <Title />
       <Board board={store.getState().gameboard} />
+      <Gameover board={store.getState().gameboard}/>
     </div>
   );
 }
@@ -75,21 +127,3 @@ const render = () => {
 
 store.subscribe(render)
 export default App;
-
-
-store.dispatch({type: 'SWITCH_PLAYER'})
-// store.dispatch({
-//   type: 'PLACE_MARKER',
-//   positon: 1,
-//   marker: 'X'
-// })
-// store.dispatch({
-//   type: 'PLACE_MARKER',
-//   positon: 4,
-//   marker: 'X'
-// })
-// store.dispatch({
-//   type: 'PLACE_MARKER',
-//   positon: 6,
-//   marker: 'O'
-// })
