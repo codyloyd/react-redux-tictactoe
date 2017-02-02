@@ -44,7 +44,7 @@ const gameStatus = board => {
                          [2, 5, 8],
                          [0, 4, 8],
                          [2, 4, 6]]
-
+  if (board.every(x => x)) return {win:false}                      
   return winConditions.reduce((win,c) => {
     if (!board[c[0]]) return win;
     if (board[c[0]] === board[c[1]] && 
@@ -82,7 +82,7 @@ const Board = ({board}) => {
 
 
 const Gameover = ({board}) => {
-  if (gameStatus(board).win){
+  if (gameStatus(board).win) {
     return (
       <div>
         <h1>GAMEOVER DUDE</h1>
@@ -90,7 +90,14 @@ const Gameover = ({board}) => {
         <RestartButton />
       </div>
     )
-  }
+  } else if (gameStatus(board).tie){
+    return (
+      <div>
+        <h1>GAMEOVER DUDE</h1>
+        <h2>it was a tie</h2>
+        <RestartButton />
+      </div>
+    )  }
   return <div></div>
 }
 
